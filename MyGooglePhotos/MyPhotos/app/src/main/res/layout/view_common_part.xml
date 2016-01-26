@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical">
+  <!-- 某视图 标题 -->
+  <TextView
+      android:id="@+id/part_title"
+      android:layout_width="match_parent"
+      android:layout_height="44dp"
+      android:visibility="gone"
+      android:background="#ccc"
+      android:gravity="center_vertical"/>
+
+  <!-- 某视图 子项 容器 -->
+  <LinearLayout
+      android:id="@+id/part_container"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical">
+
+  </LinearLayout>
+</LinearLayout>
