@@ -1,3 +1,23 @@
+project.ext {
+  releaseVersionCode = 1
+  releaseVersionName = "1.0"
+}
+
+// 创建自增version code方法
+def getReleaseVersionCode() {
+  def version = project.releaseVersionCode + 1
+  project.releaseVersionCode = version
+  println sprintf("current release version code %d", version)
+  return version
+}
+
+// 创建自定义version name
+def getLastestVersionName() {
+  def versionName = project.releaseVersionName + " (build " + project.releaseVersionCode + ")"
+  println sprintf("current realse version name:%s", versionName)
+  return versionName
+}
+
 apply plugin: 'com.android.application'
 
 android {
@@ -8,8 +28,8 @@ android {
     applicationId "com.zyl.demo.photos"
     minSdkVersion 14
     targetSdkVersion 23
-    versionCode 1
-    versionName "1.0"
+    versionCode getReleaseVersionCode()
+    versionName getLastestVersionName()
   }
   buildTypes {
     release {
