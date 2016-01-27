@@ -155,29 +155,45 @@ public class MainActivity extends AppCompatActivity implements
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.action_select:
-        selectMode = !selectMode;
-        displayData(imageMap);
+        doActionSelect();
         return true;
       case R.id.action_normal:
-        if (!status.equals(ViewStatus.STATUS_MONTH)) {
-          status = ViewStatus.STATUS_MONTH;
-          displayData(imageMap);
-        }
+        doActionNormal();
         return true;
       case R.id.action_day:
-        if (!status.equals(ViewStatus.STATUS_DAY)) {
-          status = ViewStatus.STATUS_DAY;
-          displayData(imageMap);
-        }
+        doActionDay();
         return true;
       case R.id.action_year:
-        if (!status.equals(ViewStatus.STATUS_YEAR)) {
-          status = ViewStatus.STATUS_YEAR;
-          displayData(imageMap);
-        }
+        doActionYear();
         return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  private void doActionYear() {
+    if (!status.equals(ViewStatus.STATUS_YEAR)) {
+      status = ViewStatus.STATUS_YEAR;
+      displayData(imageMap);
+    }
+  }
+
+  private void doActionDay() {
+    if (!status.equals(ViewStatus.STATUS_DAY)) {
+      status = ViewStatus.STATUS_DAY;
+      displayData(imageMap);
+    }
+  }
+
+  private void doActionNormal() {
+    if (!status.equals(ViewStatus.STATUS_MONTH)) {
+      status = ViewStatus.STATUS_MONTH;
+      displayData(imageMap);
+    }
+  }
+
+  private void doActionSelect() {
+    selectMode = !selectMode;
+    displayData(imageMap);
   }
 
   /**
@@ -215,22 +231,6 @@ public class MainActivity extends AppCompatActivity implements
       // 整合相同日的数据
       formatData(imageMap, model, dayKey);
     }
-
-//    Log.d(TAG, "输出整合的数据");
-//    Log.d(TAG, "**************************");
-//    Set<Map.Entry<String, List<ImageItemModel>>> tmpData = imageMap.entrySet();
-//    for (Map.Entry<String, List<ImageItemModel>> item : tmpData) {
-//      Log.d(TAG, String.format("************%s**************", item.getKey()));
-//      if (null != item.getValue()) {
-//        for (ImageItemModel itemModel : item.getValue()) {
-//          Log.d(TAG, new SimpleDateFormat("yyyy-MM-dd").format(new Date(itemModel.getCreateTime())));
-//        }
-//      } else {
-//        Log.d(TAG, "没有数据");
-//      }
-//      Log.d(TAG, String.format("************%s**************", item.getKey()));
-//    }
-
     displayData(imageMap);
   }
 
@@ -262,35 +262,9 @@ public class MainActivity extends AppCompatActivity implements
     }, 200);
   }
 
-  private void renderYearView(final Map<String, List<ImageItemModel>> data) {
-    Log.d(TAG, "render year view");
-    if (null == data || data.isEmpty()) return;
-    AlphaAnimation aa = new AlphaAnimation(1.0f, 0.5f);
-    aa.setDuration(200);
-    aa.setAnimationListener(new Animation.AnimationListener() {
-      @Override
-      public void onAnimationStart(Animation animation) {
-
-      }
-
-      @Override
-      public void onAnimationEnd(Animation animation) {
-        renderYearViewRealAction(data);
-      }
-
-      @Override
-      public void onAnimationRepeat(Animation animation) {
-
-      }
-    });
-    customScroll.startAnimation(aa);
-  }
-
   private void renderYearViewRealAction(Map<String, List<ImageItemModel>> data) {
     customScroll.setAlpha(1.0f);
-    // 清空子视图
-    if (customView.getChildCount() > 0)
-      customView.removeAllViews();
+    clearView();
 
     // 生成可排序的key集合
     Set<Integer> keySet = new TreeSet();
@@ -336,51 +310,7 @@ public class MainActivity extends AppCompatActivity implements
         LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
         itemLabel.setText(new SimpleDateFormat("MM月").format(new Date(itemData.get(0).getCreateTime())));
 
-        // 计算要显示的行数
-        int lines = CommonUtil.getColumns(value.size(), per);
-        Log.d(TAG, "lines:" + lines);
-
-        for (int i = 0; i < lines; i++) {
-          int start = i * per;
-          int end = start + per;
-          end = end > value.size() ? value.size() : end;
-
-          // 设置每行
-          LinearLayout partLine = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.item_container_line, null);
-          int perWidth = (CommonUtil.getScreenWidth(this) - CommonUtil.getViewWidth(itemLabel) - per * 4) / per;
-          for (int j = start; j < end; j++) {
-            final ImageItemModel model = value.get(j);
-            Bitmap bitmap = model.getBitmap();
-            if (null != bitmap) {
-              View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
-              ImageView img = (ImageView) imageItem.findViewById(R.id.img);
-              img.setImageBitmap(bitmap);
-              LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                  ViewGroup.LayoutParams.WRAP_CONTENT);
-              params.width = perWidth;
-              params.height = perWidth;
-              params.leftMargin = DEFAULT_MARGIN;
-              params.topMargin = DEFAULT_MARGIN;
-              params.rightMargin = DEFAULT_MARGIN;
-              params.bottomMargin = DEFAULT_MARGIN;
-              imageItem.setLayoutParams(params);
-              imageItem.setOnClickListener(new View.OnClickListener() {
-
-                /**
-                 * Called when a view has been clicked.
-                 *
-                 * @param v The view that was clicked.
-                 */
-                @Override
-                public void onClick(View v) {
-                  jumpToImageDetailPage(model);
-                }
-              });
-              partLine.addView(imageItem);
-            }
-          }
-          itemContainer.addView(partLine);
-        }
+        setContainerContent(itemContainer, itemLabel, itemData, per);
 
         partContainer.addView(monthItem);
       }
@@ -388,29 +318,10 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  private void renderDayView(final Map<String, List<ImageItemModel>> data) {
-    Log.d(TAG, "render day view");
-    if (null == data || data.isEmpty()) return;
-
-    AlphaAnimation aa = new AlphaAnimation(1.0f, 0.5f);
-    aa.setDuration(200);
-    aa.setAnimationListener(new Animation.AnimationListener() {
-      @Override
-      public void onAnimationStart(Animation animation) {
-
-      }
-
-      @Override
-      public void onAnimationEnd(Animation animation) {
-        renderDayViewRealAction(data);
-      }
-
-      @Override
-      public void onAnimationRepeat(Animation animation) {
-
-      }
-    });
-    customScroll.startAnimation(aa);
+  private void clearView() {
+    // 清空子视图
+    if (customView.getChildCount() > 0)
+      customView.removeAllViews();
   }
 
   private void renderDayViewRealAction(Map<String, List<ImageItemModel>> data) {
@@ -445,92 +356,11 @@ public class MainActivity extends AppCompatActivity implements
       TextView itemLabel = (TextView) monthItem.findViewById(R.id.item_label);
       LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date(itemData.get(0).getCreateTime())));
-
-      // 计算要显示的行数
-      int lines = CommonUtil.getColumns(itemData.size(), per);
-      Log.d(TAG, "lines:" + lines);
-
-      for (int i = 0; i < lines; i++) {
-        int start = i * per;
-        int end = start + per;
-        end = end > itemData.size() ? itemData.size() : end;
-
-        // 设置每行
-        LinearLayout partLine = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.item_container_line, null);
-        int perWidth = (CommonUtil.getScreenWidth(this) - per * 4) / per;
-        for (int j = start; j < end; j++) {
-          final ImageItemModel model = itemData.get(j);
-          Bitmap bitmap = model.getBitmap();
-          if (null != bitmap) {
-            View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
-            final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
-            btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
-            ImageView img = (ImageView) imageItem.findViewById(R.id.img);
-            img.setImageBitmap(bitmap);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.width = perWidth;
-            params.height = perWidth;
-            params.leftMargin = DEFAULT_MARGIN;
-            params.topMargin = DEFAULT_MARGIN;
-            params.rightMargin = DEFAULT_MARGIN;
-            params.bottomMargin = DEFAULT_MARGIN;
-            imageItem.setLayoutParams(params);
-            imageItem.setOnClickListener(new View.OnClickListener() {
-
-              /**
-               * Called when a view has been clicked.
-               *
-               * @param v The view that was clicked.
-               */
-              @Override
-              public void onClick(View v) {
-                if (selectMode) {
-                  exchangeButtonSelectState(btnSelect);
-                } else {
-                  jumpToImageDetailPage(model);
-                }
-              }
-            });
-            partLine.addView(imageItem);
-          }
-        }
-        itemContainer.addView(partLine);
-      }
-
+      setContainerContent(itemContainer, null, itemData, per);
       // 将月份条目添加到日容器
       partContainer.addView(monthItem);
     }
     customView.addView(partViewGroup);
-  }
-
-  private void exchangeButtonSelectState(ImageItemSelectWidget btnSelect) {
-    btnSelect.setChecked(!btnSelect.isChecked());
-  }
-
-  private void renderMonthView(final Map<String, List<ImageItemModel>> data) {
-    Log.d(TAG, "render month view");
-    if (null == data || data.isEmpty()) return;
-    AlphaAnimation aa = new AlphaAnimation(1.0f, 0.5f);
-    aa.setDuration(200);
-    aa.setAnimationListener(new Animation.AnimationListener() {
-      @Override
-      public void onAnimationStart(Animation animation) {
-
-      }
-
-      @Override
-      public void onAnimationEnd(Animation animation) {
-        Log.d(TAG, "render month view animation end");
-        renderMonthViewRealAction(data);
-      }
-
-      @Override
-      public void onAnimationRepeat(Animation animation) {
-
-      }
-    });
-    customScroll.startAnimation(aa);
   }
 
   private void renderMonthViewRealAction(Map<String, List<ImageItemModel>> data) {
@@ -566,68 +396,155 @@ public class MainActivity extends AppCompatActivity implements
       LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月").format(new Date(itemData.get(0).getCreateTime())));
 
-      // 计算要显示的行数
-      int lines = CommonUtil.getColumns(itemData.size(), per);
-      Log.d(TAG, "lines:" + lines);
-
-      for (int i = 0; i < lines; i++) {
-        int start = i * per;
-        int end = start + per;
-        end = end > itemData.size() ? itemData.size() : end;
-
-        // 设置每行
-        LinearLayout partLine = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.item_container_line, null);
-        int perWidth = (CommonUtil.getScreenWidth(this) - per * 4) / per;
-        for (int j = start; j < end; j++) {
-          final ImageItemModel model = itemData.get(j);
-          Bitmap bitmap = model.getBitmap();
-          if (null != bitmap) {
-            View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
-            final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
-            btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
-            btnSelect.setOnClickListener(new View.OnClickListener() {
-              @Override
-              public void onClick(View v) {
-                exchangeButtonSelectState(btnSelect);
-              }
-            });
-            ImageView img = (ImageView) imageItem.findViewById(R.id.img);
-            img.setImageBitmap(bitmap);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.width = perWidth;
-            params.height = perWidth;
-            params.leftMargin = DEFAULT_MARGIN;
-            params.topMargin = DEFAULT_MARGIN;
-            params.rightMargin = DEFAULT_MARGIN;
-            params.bottomMargin = DEFAULT_MARGIN;
-            imageItem.setLayoutParams(params);
-            imageItem.setOnClickListener(new View.OnClickListener() {
-
-              /**
-               * Called when a view has been clicked.
-               *
-               * @param v The view that was clicked.
-               */
-              @Override
-              public void onClick(View v) {
-                if (selectMode) {
-                  exchangeButtonSelectState(btnSelect);
-                } else {
-                  jumpToImageDetailPage(model);
-                }
-              }
-            });
-            partLine.addView(imageItem);
-          }
-        }
-        itemContainer.addView(partLine);
-      }
+      setContainerContent(itemContainer, null, itemData, per);
 
       // 将月份条目添加到月份容器
       partContainer.addView(monthItem);
     }
     customView.addView(partViewGroup);
+  }
+
+  private void renderYearView(final Map<String, List<ImageItemModel>> data) {
+    Log.d(TAG, "render year view");
+    if (null == data || data.isEmpty()) return;
+    AlphaAnimation aa = new AlphaAnimation(1.0f, 0.5f);
+    aa.setDuration(200);
+    aa.setAnimationListener(new Animation.AnimationListener() {
+      @Override
+      public void onAnimationStart(Animation animation) {
+
+      }
+
+      @Override
+      public void onAnimationEnd(Animation animation) {
+        renderYearViewRealAction(data);
+      }
+
+      @Override
+      public void onAnimationRepeat(Animation animation) {
+
+      }
+    });
+    customScroll.startAnimation(aa);
+  }
+
+  private void renderDayView(final Map<String, List<ImageItemModel>> data) {
+    Log.d(TAG, "render day view");
+    if (null == data || data.isEmpty()) return;
+
+    AlphaAnimation aa = new AlphaAnimation(1.0f, 0.5f);
+    aa.setDuration(200);
+    aa.setAnimationListener(new Animation.AnimationListener() {
+      @Override
+      public void onAnimationStart(Animation animation) {
+
+      }
+
+      @Override
+      public void onAnimationEnd(Animation animation) {
+        renderDayViewRealAction(data);
+      }
+
+      @Override
+      public void onAnimationRepeat(Animation animation) {
+
+      }
+    });
+    customScroll.startAnimation(aa);
+  }
+
+  private void renderMonthView(final Map<String, List<ImageItemModel>> data) {
+    Log.d(TAG, "render month view");
+    if (null == data || data.isEmpty()) return;
+    AlphaAnimation aa = new AlphaAnimation(1.0f, 0.5f);
+    aa.setDuration(200);
+    aa.setAnimationListener(new Animation.AnimationListener() {
+      @Override
+      public void onAnimationStart(Animation animation) {
+
+      }
+
+      @Override
+      public void onAnimationEnd(Animation animation) {
+        Log.d(TAG, "render month view animation end");
+        renderMonthViewRealAction(data);
+      }
+
+      @Override
+      public void onAnimationRepeat(Animation animation) {
+
+      }
+    });
+    customScroll.startAnimation(aa);
+  }
+
+  private void setContainerContent(LinearLayout itemContainer, TextView itemLabel, List<ImageItemModel> itemData, int per) {
+    // 计算要显示的行数
+    int lines = CommonUtil.getColumns(itemData.size(), per);
+    Log.d(TAG, "lines:" + lines);
+
+    for (int i = 0; i < lines; i++) {
+      int start = i * per;
+      int end = start + per;
+      end = end > itemData.size() ? itemData.size() : end;
+
+      // 设置每行
+      LinearLayout partLine = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.item_container_line, null);
+      int perWidth = 0;
+      switch (status) {
+        case STATUS_MONTH:
+        case STATUS_DAY:
+          perWidth = (CommonUtil.getScreenWidth(this) - per * 4) / per;
+          break;
+        case STATUS_YEAR:
+          perWidth = (CommonUtil.getScreenWidth(this) - CommonUtil.getViewWidth(itemLabel) - per * 4) / per;
+          break;
+      }
+      for (int j = start; j < end; j++) {
+        final ImageItemModel model = itemData.get(j);
+        Bitmap bitmap = model.getBitmap();
+        if (null != bitmap) {
+          View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
+          final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
+          if (!status.equals(ViewStatus.STATUS_YEAR)) {
+            btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
+          }
+          ImageView img = (ImageView) imageItem.findViewById(R.id.img);
+          img.setImageBitmap(bitmap);
+          LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+              ViewGroup.LayoutParams.WRAP_CONTENT);
+          params.width = perWidth;
+          params.height = perWidth;
+          params.leftMargin = DEFAULT_MARGIN;
+          params.topMargin = DEFAULT_MARGIN;
+          params.rightMargin = DEFAULT_MARGIN;
+          params.bottomMargin = DEFAULT_MARGIN;
+          imageItem.setLayoutParams(params);
+          imageItem.setOnClickListener(new View.OnClickListener() {
+
+            /**
+             * Called when a view has been clicked.
+             *
+             * @param v The view that was clicked.
+             */
+            @Override
+            public void onClick(View v) {
+              if (selectMode && !status.equals(ViewStatus.STATUS_YEAR)) {
+                exchangeButtonSelectState(btnSelect);
+              } else {
+                jumpToImageDetailPage(model);
+              }
+            }
+          });
+          partLine.addView(imageItem);
+        }
+      }
+      itemContainer.addView(partLine);
+    }
+  }
+
+  private void exchangeButtonSelectState(ImageItemSelectWidget btnSelect) {
+    btnSelect.setChecked(!btnSelect.isChecked());
   }
 
   private void jumpToImageDetailPage(ImageItemModel model) {
