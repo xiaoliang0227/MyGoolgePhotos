@@ -32,8 +32,18 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
     this.callback = callback;
   }
 
-  private int[] images = {R.mipmap.btn_sys_status_active,
-      R.mipmap.btn_photos_active, R.mipmap.btn_diskstore_active, R.mipmap.btn_application_active};
+  private int[] images = {R.drawable.test1,
+      R.drawable.test2,
+      R.drawable.test3,
+      R.drawable.test4,
+      R.drawable.test5,
+      R.drawable.test6,
+      R.drawable.test7,
+      R.drawable.test8,
+      R.drawable.test9,
+      R.drawable.test10,
+
+  };
 
   /**
    * Runs on the UI thread before {@link #doInBackground}.
@@ -88,7 +98,7 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
     List<ImageItemModel> data = new ArrayList<>();
     for (int i = 0; i < 35; i++) {
       ImageItemModel model = new ImageItemModel();
-      model.setCreateTime((long) (System.currentTimeMillis() - Math.random() * 5 * 24 * 60 * 60 * 1000));
+      model.setCreateTime((long) (System.currentTimeMillis() - Math.random() * images.length * 24 * 60 * 60 * 1000));
       model.setModifyTime(model.getCreateTime());
       Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), images[(int) (Math.random() * 4)]);
       model.setBitmap(bitmap);
@@ -101,6 +111,7 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
 
     /**
      * 获取相片数据后,回调处理
+     *
      * @param data
      */
     void showImageData(List<ImageItemModel> data);

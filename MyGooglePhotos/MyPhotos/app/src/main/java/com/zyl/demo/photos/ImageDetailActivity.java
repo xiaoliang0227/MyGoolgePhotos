@@ -1,9 +1,9 @@
 package com.zyl.demo.photos;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -54,7 +54,14 @@ public class ImageDetailActivity extends AppCompatActivity implements View.OnTou
     initField();
     initToolbar();
     initRange();
-    initData();
+    // TODO (remove this tmp code)
+    Handler handler = new Handler();
+    handler.postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        initData();
+      }
+    }, 300);
   }
 
   private void initRange() {
@@ -73,10 +80,8 @@ public class ImageDetailActivity extends AppCompatActivity implements View.OnTou
 
   private void initData() {
     try {
-      Intent intent = getIntent();
-      if (intent.hasExtra("data")) {
-        this.imgData = intent.getParcelableExtra("data");
-      }
+      MyGooglePhotosApplication application = (MyGooglePhotosApplication) getApplication();
+      this.imgData = application.getCurrentBitmap();
       img.setImageBitmap(imgData);
     } catch (Exception e) {
       e.printStackTrace();

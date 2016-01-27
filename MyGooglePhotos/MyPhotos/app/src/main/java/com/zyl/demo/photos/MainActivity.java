@@ -559,9 +559,17 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void jumpToImageDetailPage(ImageItemModel model) {
-    Intent intent = new Intent(this, ImageDetailActivity.class);
-    intent.putExtra("data", model.getBitmap());
-    startActivity(intent);
+    MyGooglePhotosApplication application = (MyGooglePhotosApplication) getApplication();
+    application.setCurrentBitmap(model.getBitmap());
+    // TODO (remove this tmp code)
+    Handler handler = new Handler();
+    handler.postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        Intent intent = new Intent(MainActivity.this, ImageDetailActivity.class);
+        startActivity(intent);
+      }
+    }, 300);
   }
 
   private void formatData(Map<String, List<ImageItemModel>> map, ImageItemModel model, String key) {
