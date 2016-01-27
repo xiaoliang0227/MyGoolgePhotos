@@ -104,38 +104,6 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   /**
-   * Initialize the contents of the Activity's standard options menu.  You
-   * should place your menu items in to <var>menu</var>.
-   * <p/>
-   * <p>This is only called once, the first time the options menu is
-   * displayed.  To update the menu every time it is displayed, see
-   * {@link #onPrepareOptionsMenu}.
-   * <p/>
-   * <p>The default implementation populates the menu with standard system
-   * menu items.  These are placed in the {@link Menu#CATEGORY_SYSTEM} group so that
-   * they will be correctly ordered with application-defined menu items.
-   * Deriving classes should always call through to the base implementation.
-   * <p/>
-   * <p>You can safely hold on to <var>menu</var> (and any items created
-   * from it), making modifications to it as desired, until the next
-   * time onCreateOptionsMenu() is called.
-   * <p/>
-   * <p>When you add items to the menu, you can implement the Activity's
-   * {@link #onOptionsItemSelected} method to handle them there.
-   *
-   * @param menu The options menu in which you place your items.
-   * @return You must return true for the menu to be displayed;
-   * if you return false it will not be shown.
-   * @see #onPrepareOptionsMenu
-   * @see #onOptionsItemSelected
-   */
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.menu_main, menu);
-    return true;
-  }
-
-  /**
    * This hook is called whenever an item in your options menu is selected.
    * The default implementation simply returns false to have the normal
    * processing happen (calling the item's Runnable or sending a message to
@@ -168,6 +136,49 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  /**
+   * Prepare the Screen's standard options menu to be displayed.  This is
+   * called right before the menu is shown, every time it is shown.  You can
+   * use this method to efficiently enable/disable items or otherwise
+   * dynamically modify the contents.
+   * <p/>
+   * <p>The default implementation updates the system menu items based on the
+   * activity's state.  Deriving classes should always call through to the
+   * base class implementation.
+   *
+   * @param menu The options menu as last shown or first initialized by
+   *             onCreateOptionsMenu().
+   * @return You must return true for the menu to be displayed;
+   * if you return false it will not be shown.
+   * @see #onCreateOptionsMenu
+   */
+  @Override
+  public boolean onPrepareOptionsMenu(Menu menu) {
+    Log.d(TAG, "onPrepareOptionsMenu");
+    dynamicExchangeMenu(menu);
+    return super.onPrepareOptionsMenu(menu);
+  }
+
+  private void dynamicExchangeMenu(Menu menu) {
+    menu.clear();
+    switch (status) {
+      case STATUS_YEAR:
+        menu.add(Menu.NONE, R.id.action_normal, Menu.FIRST, "标准视图");
+        menu.add(Menu.NONE, R.id.action_day, Menu.FIRST + 1, "日视图");
+        break;
+      case STATUS_MONTH:
+        menu.add(Menu.NONE, R.id.action_select, Menu.FIRST, "选择...");
+        menu.add(Menu.NONE, R.id.action_day, Menu.FIRST + 1, "日视图");
+        menu.add(Menu.NONE, R.id.action_year, Menu.FIRST + 2, "年视图");
+        break;
+      case STATUS_DAY:
+        menu.add(Menu.NONE, R.id.action_select, Menu.FIRST, "选择...");
+        menu.add(Menu.NONE, R.id.action_normal, Menu.FIRST + 1, "标准视图");
+        menu.add(Menu.NONE, R.id.action_year, Menu.FIRST + 2, "年视图");
+        break;
+    }
   }
 
   private void doActionYear() {
