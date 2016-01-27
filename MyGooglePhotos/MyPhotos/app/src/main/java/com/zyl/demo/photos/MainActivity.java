@@ -169,12 +169,12 @@ public class MainActivity extends AppCompatActivity implements
         menu.add(Menu.NONE, R.id.action_day, Menu.FIRST + 1, "日视图");
         break;
       case STATUS_MONTH:
-        menu.add(Menu.NONE, R.id.action_select, Menu.FIRST, "选择...");
+        menu.add(Menu.NONE, R.id.action_select, Menu.FIRST, selectMode ? "取消选择..." : "选择...");
         menu.add(Menu.NONE, R.id.action_day, Menu.FIRST + 1, "日视图");
         menu.add(Menu.NONE, R.id.action_year, Menu.FIRST + 2, "年视图");
         break;
       case STATUS_DAY:
-        menu.add(Menu.NONE, R.id.action_select, Menu.FIRST, "选择...");
+        menu.add(Menu.NONE, R.id.action_select, Menu.FIRST, selectMode ? "取消选择..." : "选择...");
         menu.add(Menu.NONE, R.id.action_normal, Menu.FIRST + 1, "标准视图");
         menu.add(Menu.NONE, R.id.action_year, Menu.FIRST + 2, "年视图");
         break;
@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements
         LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
         itemLabel.setText(new SimpleDateFormat("MM月").format(new Date(itemData.get(0).getCreateTime())));
 
-        setContainerContent(itemContainer, itemLabel, itemData, per);
+        setContainerContent(itemContainer, itemLabel, value, per);
 
         partContainer.addView(monthItem);
       }
