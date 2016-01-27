@@ -5,12 +5,28 @@
               android:orientation="vertical">
 
   <!-- 月或日视图 子项标题 -->
-  <TextView
-      android:id="@+id/item_label"
+  <LinearLayout
       android:layout_width="match_parent"
-      android:layout_height="44dp"
-      android:background="#ccc"
-      android:gravity="center_vertical"/>
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      android:paddingLeft="5dp"
+      android:paddingRight="5dp">
+
+    <com.zyl.demo.photos.widget.CategerySelectWidget
+        android:id="@+id/btn_select"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginRight="20dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/item_label"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:gravity="center_vertical"/>
+  </LinearLayout>
+
 
   <!-- 月或日视图 子项 照片容器 -->
   <LinearLayout

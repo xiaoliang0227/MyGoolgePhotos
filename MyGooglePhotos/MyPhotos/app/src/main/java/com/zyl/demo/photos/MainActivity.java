@@ -18,15 +18,16 @@ import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.zyl.demo.photos.comparator.ComparatorUtil;
 import com.zyl.demo.photos.enumeration.ViewStatus;
 import com.zyl.demo.photos.model.ImageItemModel;
 import com.zyl.demo.photos.task.ImageDataFetchTask;
 import com.zyl.demo.photos.util.CommonUtil;
+import com.zyl.demo.photos.widget.CategerySelectWidget;
 import com.zyl.demo.photos.widget.CustomScrollView;
 import com.zyl.demo.photos.widget.CustomView;
+import com.zyl.demo.photos.widget.ImageItemSelectWidget;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements
   private Map<String, List<ImageItemModel>> imageMap;
 
   private Toolbar toolbar;
+
+  private boolean selectMode = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -152,7 +155,8 @@ public class MainActivity extends AppCompatActivity implements
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.action_select:
-        Toast.makeText(this, "选择", Toast.LENGTH_SHORT).show();
+        selectMode = !selectMode;
+        displayData(imageMap);
         return true;
       case R.id.action_normal:
         if (!status.equals(ViewStatus.STATUS_MONTH)) {
@@ -185,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements
   public void showImageData(List<ImageItemModel> data) {
     Log.d(TAG, "data:" + data);
     if (null == data) return;
-     imageMap = new HashMap<>();
+    imageMap = new HashMap<>();
     for (ImageItemModel model : data) {
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(new Date(model.getCreateTime()));
@@ -348,10 +352,9 @@ public class MainActivity extends AppCompatActivity implements
             final ImageItemModel model = value.get(j);
             Bitmap bitmap = model.getBitmap();
             if (null != bitmap) {
-              ImageView imageView = new ImageView(this);
-              imageView.setClickable(true);
-              imageView.setBackgroundResource(R.drawable.bg_image_item);
-              imageView.setImageBitmap(bitmap);
+              View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
+              ImageView img = (ImageView) imageItem.findViewById(R.id.img);
+              img.setImageBitmap(bitmap);
               LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                   ViewGroup.LayoutParams.WRAP_CONTENT);
               params.width = perWidth;
@@ -360,8 +363,8 @@ public class MainActivity extends AppCompatActivity implements
               params.topMargin = DEFAULT_MARGIN;
               params.rightMargin = DEFAULT_MARGIN;
               params.bottomMargin = DEFAULT_MARGIN;
-              imageView.setLayoutParams(params);
-              imageView.setOnClickListener(new View.OnClickListener() {
+              imageItem.setLayoutParams(params);
+              imageItem.setOnClickListener(new View.OnClickListener() {
 
                 /**
                  * Called when a view has been clicked.
@@ -373,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements
                   jumpToImageDetailPage(model);
                 }
               });
-              partLine.addView(imageView);
+              partLine.addView(imageItem);
             }
           }
           itemContainer.addView(partLine);
@@ -437,6 +440,8 @@ public class MainActivity extends AppCompatActivity implements
 
       // 创建日条目
       ViewGroup monthItem = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.normal_part_line_item, null);
+      final CategerySelectWidget partBtnSelect = (CategerySelectWidget) monthItem.findViewById(R.id.btn_select);
+      partBtnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
       TextView itemLabel = (TextView) monthItem.findViewById(R.id.item_label);
       LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date(itemData.get(0).getCreateTime())));
@@ -452,15 +457,16 @@ public class MainActivity extends AppCompatActivity implements
 
         // 设置每行
         LinearLayout partLine = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.item_container_line, null);
-        int perWidth = (CommonUtil.getScreenWidth(this) - per * 4)  / per;
+        int perWidth = (CommonUtil.getScreenWidth(this) - per * 4) / per;
         for (int j = start; j < end; j++) {
           final ImageItemModel model = itemData.get(j);
           Bitmap bitmap = model.getBitmap();
           if (null != bitmap) {
-            ImageView imageView = new ImageView(this);
-            imageView.setClickable(true);
-            imageView.setBackgroundResource(R.drawable.bg_image_item);
-            imageView.setImageBitmap(bitmap);
+            View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
+            final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
+            btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
+            ImageView img = (ImageView) imageItem.findViewById(R.id.img);
+            img.setImageBitmap(bitmap);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
             params.width = perWidth;
@@ -469,8 +475,8 @@ public class MainActivity extends AppCompatActivity implements
             params.topMargin = DEFAULT_MARGIN;
             params.rightMargin = DEFAULT_MARGIN;
             params.bottomMargin = DEFAULT_MARGIN;
-            imageView.setLayoutParams(params);
-            imageView.setOnClickListener(new View.OnClickListener() {
+            imageItem.setLayoutParams(params);
+            imageItem.setOnClickListener(new View.OnClickListener() {
 
               /**
                * Called when a view has been clicked.
@@ -479,10 +485,14 @@ public class MainActivity extends AppCompatActivity implements
                */
               @Override
               public void onClick(View v) {
-                jumpToImageDetailPage(model);
+                if (selectMode) {
+                  exchangeButtonSelectState(btnSelect);
+                } else {
+                  jumpToImageDetailPage(model);
+                }
               }
             });
-            partLine.addView(imageView);
+            partLine.addView(imageItem);
           }
         }
         itemContainer.addView(partLine);
@@ -492,6 +502,10 @@ public class MainActivity extends AppCompatActivity implements
       partContainer.addView(monthItem);
     }
     customView.addView(partViewGroup);
+  }
+
+  private void exchangeButtonSelectState(ImageItemSelectWidget btnSelect) {
+    btnSelect.setChecked(!btnSelect.isChecked());
   }
 
   private void renderMonthView(final Map<String, List<ImageItemModel>> data) {
@@ -546,6 +560,8 @@ public class MainActivity extends AppCompatActivity implements
 
       // 创建月份条目
       ViewGroup monthItem = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.normal_part_line_item, null);
+      final CategerySelectWidget partBtnSelect = (CategerySelectWidget) monthItem.findViewById(R.id.btn_select);
+      partBtnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
       TextView itemLabel = (TextView) monthItem.findViewById(R.id.item_label);
       LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月").format(new Date(itemData.get(0).getCreateTime())));
@@ -566,10 +582,17 @@ public class MainActivity extends AppCompatActivity implements
           final ImageItemModel model = itemData.get(j);
           Bitmap bitmap = model.getBitmap();
           if (null != bitmap) {
-            ImageView imageView = new ImageView(this);
-            imageView.setClickable(true);
-            imageView.setBackgroundResource(R.drawable.bg_image_item);
-            imageView.setImageBitmap(bitmap);
+            View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
+            final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
+            btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
+            btnSelect.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                exchangeButtonSelectState(btnSelect);
+              }
+            });
+            ImageView img = (ImageView) imageItem.findViewById(R.id.img);
+            img.setImageBitmap(bitmap);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
             params.width = perWidth;
@@ -578,8 +601,8 @@ public class MainActivity extends AppCompatActivity implements
             params.topMargin = DEFAULT_MARGIN;
             params.rightMargin = DEFAULT_MARGIN;
             params.bottomMargin = DEFAULT_MARGIN;
-            imageView.setLayoutParams(params);
-            imageView.setOnClickListener(new View.OnClickListener() {
+            imageItem.setLayoutParams(params);
+            imageItem.setOnClickListener(new View.OnClickListener() {
 
               /**
                * Called when a view has been clicked.
@@ -588,10 +611,14 @@ public class MainActivity extends AppCompatActivity implements
                */
               @Override
               public void onClick(View v) {
-                jumpToImageDetailPage(model);
+                if (selectMode) {
+                  exchangeButtonSelectState(btnSelect);
+                } else {
+                  jumpToImageDetailPage(model);
+                }
               }
             });
-            partLine.addView(imageView);
+            partLine.addView(imageItem);
           }
         }
         itemContainer.addView(partLine);
