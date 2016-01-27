@@ -100,7 +100,7 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
       ImageItemModel model = new ImageItemModel();
       model.setCreateTime((long) (System.currentTimeMillis() - Math.random() * images.length * 24 * 60 * 60 * 1000));
       model.setModifyTime(model.getCreateTime());
-      Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), images[(int) (Math.random() * 4)]);
+      Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), images[(int) (Math.random() * images.length)]);
       model.setBitmap(bitmap);
       data.add(model);
     }
