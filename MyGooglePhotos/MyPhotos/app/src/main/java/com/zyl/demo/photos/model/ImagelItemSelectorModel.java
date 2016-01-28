@@ -14,6 +14,8 @@ public class ImagelItemSelectorModel implements Serializable {
 
   private ImageItemSelectWidget sub;
 
+  private ImageItemModel model;
+
   public CategerySelectWidget getCategery() {
     return categery;
   }
@@ -28,5 +30,13 @@ public class ImagelItemSelectorModel implements Serializable {
 
   public void setSub(ImageItemSelectWidget sub) {
     this.sub = sub;
+  }
+
+  public ImageItemModel getModel() {
+    return model;
+  }
+
+  public void setModel(ImageItemModel model) {
+    this.model = model;
   }
 }

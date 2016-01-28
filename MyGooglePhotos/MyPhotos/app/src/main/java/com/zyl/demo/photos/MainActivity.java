@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void doActionSelect() {
+    selectedList.clear();
     selectMode = !selectMode;
     displayData(imageMap);
   }
@@ -385,6 +386,11 @@ public class MainActivity extends AppCompatActivity implements
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
               item.getSub().setChecked(isChecked);
+              if (isChecked) {
+                selectedList.add(item.getModel());
+              } else {
+                selectedList.remove(item.getModel());
+              }
             }
           }
         }
@@ -590,6 +596,7 @@ public class MainActivity extends AppCompatActivity implements
             ImagelItemSelectorModel selectorModel = new ImagelItemSelectorModel();
             selectorModel.setCategery(partBtnSelect);
             selectorModel.setSub(btnSelect);
+            selectorModel.setModel(model);
             imageSelectList.add(selectorModel);
           }
 
