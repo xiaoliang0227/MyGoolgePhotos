@@ -1,5 +1,7 @@
 package com.zyl.demo.photos.model;
 
+import android.widget.ImageView;
+
 import com.zyl.demo.photos.widget.CategerySelectWidget;
 import com.zyl.demo.photos.widget.ImageItemSelectWidget;
 
@@ -13,6 +15,8 @@ public class ImagelItemSelectorModel implements Serializable {
   private CategerySelectWidget categery;
 
   private ImageItemSelectWidget sub;
+
+  private ImageView imageView;
 
   private ImageItemModel model;
 
@@ -38,5 +42,13 @@ public class ImagelItemSelectorModel implements Serializable {
 
   public void setModel(ImageItemModel model) {
     this.model = model;
+  }
+
+  public ImageView getImageView() {
+    return imageView;
+  }
+
+  public void setImageView(ImageView imageView) {
+    this.imageView = imageView;
   }
 }

@@ -70,15 +70,10 @@ public class CustomScrollView extends ScrollView {
    */
   @Override
   public boolean dispatchTouchEvent(MotionEvent ev) {
-    return super.dispatchTouchEvent(ev);
-  }
-
-  @Override
-  public boolean onTouchEvent(MotionEvent ev) {
-    Log.d(TAG, "ev.getAction():" + ev.getAction());
     switch (ev.getAction() & MotionEvent.ACTION_MASK) {
       case MotionEvent.ACTION_DOWN:
         primaryP.set(ev.getX(), ev.getY());
+        Log.d(TAG, "presure:" + ev.getPressure());
         break;
       case MotionEvent.ACTION_POINTER_DOWN:
         primaryP.set(ev.getX(0), ev.getY(0));
@@ -89,7 +84,10 @@ public class CustomScrollView extends ScrollView {
       case MotionEvent.ACTION_MOVE:
         // 选择模式
         if (ev.getPointerCount() == 1 && selectMode) {
-          Log.d(TAG, "now is long pressed status, ev:" + ev);
+          if (primaryP.x == 0) {
+            primaryP.set(ev.getX(), ev.getY());
+          }
+          customScrollViewScaleChangeListener.longPressMoveSelect(primaryP, ev);
         } else {
           move = true;
           if (!lock) {
@@ -137,13 +135,19 @@ public class CustomScrollView extends ScrollView {
     if (lock) {
       return true;
     } else {
-      return super.onTouchEvent(ev);
+      return super.dispatchTouchEvent(ev);
     }
+  }
+
+  @Override
+  public boolean onTouchEvent(MotionEvent ev) {
+    return super.onTouchEvent(ev);
   }
 
   public interface CustomScrollViewScaleChangeListener {
 
     void renderViewByScale(ViewStatus status);
 
+    void longPressMoveSelect(PointF primaryP, MotionEvent event);
   }
 }

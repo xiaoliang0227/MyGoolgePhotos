@@ -1,6 +1,7 @@
 package com.zyl.demo.photos;
 
 import android.content.Intent;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
@@ -65,6 +67,8 @@ public class MainActivity extends AppCompatActivity implements
   private boolean selectMode = false;
 
   private List<ImageItemModel> selectedList = new ArrayList<>();
+
+  private Map<String, List<ImagelItemSelectorModel>> selectMap = new HashMap<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -343,6 +347,7 @@ public class MainActivity extends AppCompatActivity implements
 
   private void renderDayViewRealAction(Map<String, List<ImageItemModel>> data) {
     customScroll.setAlpha(1.0f);
+    customScroll.setSelectMode(selectMode);
     // 清空子视图
     if (customView.getChildCount() > 0)
       customView.removeAllViews();
@@ -360,13 +365,14 @@ public class MainActivity extends AppCompatActivity implements
     ViewGroup partViewGroup = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.view_common_part, customView, false);
     LinearLayout partContainer = (LinearLayout) partViewGroup.findViewById(R.id.part_container);
 
+    // 管理选中按钮
+    selectMap.clear();
+
     // 检查排序后的集合
     for (Integer item : keySet) {
-      List<ImageItemModel> itemData = data.get("day_" + item);
+      final String key = "day_" + item;
+      List<ImageItemModel> itemData = data.get(key);
       if (null == itemData || itemData.isEmpty()) continue;
-
-      // 管理选中按钮
-      final Map<CategerySelectWidget, List<ImagelItemSelectorModel>> selectMap = new HashMap<>();
 
       // 创建日条目
       ViewGroup monthItem = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.normal_part_line_item, null);
@@ -375,21 +381,20 @@ public class MainActivity extends AppCompatActivity implements
       TextView itemLabel = (TextView) monthItem.findViewById(R.id.item_label);
       LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date(itemData.get(0).getCreateTime())));
-      setContainerContent(itemContainer, null, itemData, per, selectMap, partBtnSelect);
+      setContainerContent(itemContainer, null, itemData, per, partBtnSelect, key);
+
+      Log.d(TAG, "selectMap:" + selectMap.size());
 
       // 添加category选项框监听时间
       partBtnSelect.setStateChangeListener(new CategerySelectWidget.OnStateChangeListener() {
         @Override
         public void onStateChangeListener(boolean isChecked) {
-          List<ImagelItemSelectorModel> selectorModels = selectMap.get(partBtnSelect);
+          List<ImagelItemSelectorModel> selectorModels = selectMap.get(key);
+          Log.d(TAG, "key:" + key + ",selectorModels:" + selectorModels.size());
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
               item.getSub().setChecked(isChecked);
-              if (isChecked) {
-                selectedList.add(item.getModel());
-              } else {
-                selectedList.remove(item.getModel());
-              }
+              item.getImageView().setAlpha(isChecked ? 0.5f : 1.0f);
             }
           }
         }
@@ -399,6 +404,7 @@ public class MainActivity extends AppCompatActivity implements
 
         }
       });
+
       // 将月份条目添加到日容器
       partContainer.addView(monthItem);
     }
@@ -424,13 +430,14 @@ public class MainActivity extends AppCompatActivity implements
     ViewGroup partViewGroup = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.view_common_part, customView, false);
     LinearLayout partContainer = (LinearLayout) partViewGroup.findViewById(R.id.part_container);
 
+    // 管理选中按钮
+    selectMap.clear();
+
     // 检查排序后的集合
     for (Integer item : keySet) {
-      final List<ImageItemModel> itemData = data.get("month_" + item);
+      final String key = "month_" + item;
+      final List<ImageItemModel> itemData = data.get(key);
       if (null == itemData || itemData.isEmpty()) continue;
-
-      // 管理选中按钮
-      final Map<CategerySelectWidget, List<ImagelItemSelectorModel>> selectMap = new HashMap<>();
 
       // 创建月份条目
       ViewGroup monthItem = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.normal_part_line_item, null);
@@ -440,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements
       LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月").format(new Date(itemData.get(0).getCreateTime())));
 
-      setContainerContent(itemContainer, null, itemData, per, selectMap, partBtnSelect);
+      setContainerContent(itemContainer, null, itemData, per, partBtnSelect, key);
 
       // 将月份条目添加到月份容器
       partContainer.addView(monthItem);
@@ -449,10 +456,11 @@ public class MainActivity extends AppCompatActivity implements
       partBtnSelect.setStateChangeListener(new CategerySelectWidget.OnStateChangeListener() {
         @Override
         public void onStateChangeListener(boolean isChecked) {
-          List<ImagelItemSelectorModel> selectorModels = selectMap.get(partBtnSelect);
+          List<ImagelItemSelectorModel> selectorModels = selectMap.get(key);
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
               item.getSub().setChecked(partBtnSelect.isChecked());
+              item.getImageView().setAlpha(partBtnSelect.isChecked() ? 0.5f : 1.0f);
             }
           }
         }
@@ -540,7 +548,8 @@ public class MainActivity extends AppCompatActivity implements
     customScroll.startAnimation(aa);
   }
 
-  private void setContainerContent(LinearLayout itemContainer, TextView itemLabel, List<ImageItemModel> itemData, int per, Map<CategerySelectWidget, List<ImagelItemSelectorModel>> selectMap, final CategerySelectWidget partBtnSelect) {
+  private void setContainerContent(LinearLayout itemContainer, TextView itemLabel, List<ImageItemModel> itemData,
+                                   int per, final CategerySelectWidget partBtnSelect, final String key) {
     // 计算要显示的行数
     int lines = CommonUtil.getColumns(itemData.size(), per);
     Log.d(TAG, "lines:" + lines);
@@ -568,7 +577,9 @@ public class MainActivity extends AppCompatActivity implements
         if (null != drawable) {
           View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
           final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
-          btnSelect.setTag(System.currentTimeMillis());
+          final ImageView img = (ImageView) imageItem.findViewById(R.id.img);
+          setImageData(img, model);
+
           if (!status.equals(ViewStatus.STATUS_YEAR)) {
             btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
           }
@@ -579,7 +590,7 @@ public class MainActivity extends AppCompatActivity implements
             btnSelect.setStateChangeListener(new ImageItemSelectWidget.OnStateChangeListener() {
               @Override
               public void onStateChangeListener(boolean isChecked) {
-                selectStatusChange(isChecked, model, partBtnSelect);
+                selectStatusChange(img, isChecked, model, partBtnSelect);
               }
 
               @Override
@@ -592,11 +603,9 @@ public class MainActivity extends AppCompatActivity implements
             selectorModel.setCategery(partBtnSelect);
             selectorModel.setSub(btnSelect);
             selectorModel.setModel(model);
+            selectorModel.setImageView(img);
             imageSelectList.add(selectorModel);
           }
-
-          final ImageView img = (ImageView) imageItem.findViewById(R.id.img);
-          setImageData(img, model);
 
           LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
               ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -617,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
               if (selectMode && !status.equals(ViewStatus.STATUS_YEAR)) {
-                exchangeButtonSelectState(btnSelect, model, partBtnSelect);
+                exchangeButtonSelectState(img, btnSelect, model, partBtnSelect);
               } else {
                 jumpToImageDetailPage(model);
               }
@@ -629,14 +638,16 @@ public class MainActivity extends AppCompatActivity implements
       itemContainer.addView(partLine);
     }
     if (null != partBtnSelect) {
-      selectMap.put(partBtnSelect, imageSelectList);
+      selectMap.put(key, imageSelectList);
     }
   }
 
-  private void selectStatusChange(boolean isChecked, ImageItemModel model, CategerySelectWidget partBtnSelect) {
+  private void selectStatusChange(ImageView img, boolean isChecked, ImageItemModel model, CategerySelectWidget partBtnSelect) {
     if (isChecked) {
+      img.setAlpha(0.5f);
       selectedList.add(model);
     } else {
+      img.setAlpha(1.0f);
       selectedList.remove(model);
     }
     partBtnSelect.setChecked(!selectedList.isEmpty());
@@ -656,9 +667,9 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  private void exchangeButtonSelectState(ImageItemSelectWidget btnSelect, ImageItemModel model, CategerySelectWidget partBtnSelect) {
+  private void exchangeButtonSelectState(ImageView img, ImageItemSelectWidget btnSelect, ImageItemModel model, CategerySelectWidget partBtnSelect) {
     btnSelect.setChecked(!btnSelect.isChecked());
-    selectStatusChange(btnSelect.isChecked(), model, partBtnSelect);
+    selectStatusChange(img, btnSelect.isChecked(), model, partBtnSelect);
   }
 
   private void jumpToImageDetailPage(ImageItemModel model) {
@@ -691,6 +702,55 @@ public class MainActivity extends AppCompatActivity implements
     if (!status.equals(this.status)) {
       this.status = status;
       displayData(imageMap);
+    }
+  }
+
+  @Override
+  public void longPressMoveSelect(PointF primaryP, MotionEvent event) {
+    if (null == selectMap || selectMap.isEmpty() || !status.equals(ViewStatus.STATUS_MONTH)) return;
+    // 从左向右滑动时触发
+    if (event.getX() > primaryP.x) {
+      int height = (int) Math.abs(event.getY() - primaryP.y);
+      int perWidth = 0;
+      int columns = 0;
+      int rows = 0;
+      int per = 0;
+      if (status.equals(ViewStatus.STATUS_MONTH)) {
+        per = 4;
+      } else if (status.equals(ViewStatus.STATUS_DAY)) {
+        per = 2;
+      }
+      perWidth = (CommonUtil.getScreenWidth(this) - per * 4) / per;
+      int width = (int) Math.abs(event.getX() - primaryP.x);
+      Log.d(TAG, "width:" + width + ",height:" + height);
+      if (width <= 30 && height >= 100) {
+        width = perWidth * per;
+      }
+      rows = (int) Math.ceil(height * 1.0 / perWidth);
+      columns = (int) Math.ceil(width * 1.0 / perWidth);
+
+      Set<String> keySet = selectMap.keySet();
+      for (String key : keySet) {
+        List<ImagelItemSelectorModel> selectorModels = selectMap.get(key);
+        List<ImagelItemSelectorModel> tmpList = new ArrayList<>();
+        for (int i = 0; i < rows; i++) {
+          int start = (rows - 1) * per;
+          if (start > selectorModels.size()) {
+            break;
+          }
+          int end = start + columns;
+          if (end > selectorModels.size()) {
+            end = selectorModels.size();
+          }
+          tmpList.addAll(selectorModels.subList(start, end));
+        }
+        // 设置选中状态
+        for (ImagelItemSelectorModel item : tmpList) {
+          item.getCategery().setChecked(true);
+          item.getSub().setChecked(true);
+          item.getImageView().setAlpha(0.5f);
+        }
+      }
     }
   }
 }
