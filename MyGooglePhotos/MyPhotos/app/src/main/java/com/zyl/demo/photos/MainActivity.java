@@ -1,7 +1,7 @@
 package com.zyl.demo.photos;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -513,15 +513,15 @@ public class MainActivity extends AppCompatActivity implements
       }
       for (int j = start; j < end; j++) {
         final ImageItemModel model = itemData.get(j);
-        Bitmap bitmap = model.getBitmap();
-        if (null != bitmap) {
+        Drawable drawable = model.getBitmapDrawable();
+        if (null != drawable) {
           View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
           final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
           if (!status.equals(ViewStatus.STATUS_YEAR)) {
             btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
           }
           ImageView img = (ImageView) imageItem.findViewById(R.id.img);
-          img.setImageBitmap(bitmap);
+          setImageData(img, model);
           LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
               ViewGroup.LayoutParams.WRAP_CONTENT);
           params.width = perWidth;
@@ -551,6 +551,20 @@ public class MainActivity extends AppCompatActivity implements
         }
       }
       itemContainer.addView(partLine);
+    }
+  }
+
+  private void setImageData(ImageView img, ImageItemModel model) {
+    switch (status) {
+      case STATUS_MONTH:
+        img.setImageDrawable(model.getNormalDrawable());
+        break;
+      case STATUS_DAY:
+        img.setImageDrawable(model.getDayDrawable());
+        break;
+      case STATUS_YEAR:
+        img.setImageDrawable(model.getYearDrawable());
+        break;
     }
   }
 

@@ -1,6 +1,7 @@
 package com.zyl.demo.photos.model;
 
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 
 import java.io.Serializable;
 
@@ -13,7 +14,30 @@ public class ImageItemModel implements Serializable {
 
   private long modifyTime;
 
+  /**
+   * 根据不同的情况生成不同的图片缩略图,以减少内存耗用
+   * 原始图片:bitmap,bitmapDrawable
+   * 标准视图:normalBitmap,normalDrawable
+   * 日视图:dayBitmap,dayDrawable
+   * 年视图:yearBitmap,yearDrawable
+   */
+
   private Bitmap bitmap;
+
+  private Drawable bitmapDrawable;
+
+  private Bitmap normalBitmap;
+
+  private Drawable normalDrawable;
+
+  private Bitmap dayBitmap;
+
+  private Drawable dayDrawable;
+
+  private Bitmap yearBitmap;
+
+  private Drawable yearDrawable;
+
 
   public long getCreateTime() {
     return createTime;
@@ -37,5 +61,61 @@ public class ImageItemModel implements Serializable {
 
   public void setBitmap(Bitmap bitmap) {
     this.bitmap = bitmap;
+  }
+
+  public Drawable getBitmapDrawable() {
+    return bitmapDrawable;
+  }
+
+  public void setBitmapDrawable(Drawable bitmapDrawable) {
+    this.bitmapDrawable = bitmapDrawable;
+  }
+
+  public Bitmap getNormalBitmap() {
+    return normalBitmap;
+  }
+
+  public void setNormalBitmap(Bitmap normalBitmap) {
+    this.normalBitmap = normalBitmap;
+  }
+
+  public Drawable getNormalDrawable() {
+    return normalDrawable;
+  }
+
+  public void setNormalDrawable(Drawable normalDrawable) {
+    this.normalDrawable = normalDrawable;
+  }
+
+  public Bitmap getDayBitmap() {
+    return dayBitmap;
+  }
+
+  public void setDayBitmap(Bitmap dayBitmap) {
+    this.dayBitmap = dayBitmap;
+  }
+
+  public Drawable getDayDrawable() {
+    return dayDrawable;
+  }
+
+  public void setDayDrawable(Drawable dayDrawable) {
+    this.dayDrawable = dayDrawable;
+  }
+
+  public Bitmap getYearBitmap() {
+    return yearBitmap;
+  }
+
+  public void setYearBitmap(Bitmap yearBitmap) {
+    this.yearBitmap = yearBitmap;
+  }
+
+  public Drawable getYearDrawable() {
+    return yearDrawable;
+  }
+
+  public void setYearDrawable(Drawable yearDrawable) {
+    this.yearDrawable = yearDrawable;
   }
 }

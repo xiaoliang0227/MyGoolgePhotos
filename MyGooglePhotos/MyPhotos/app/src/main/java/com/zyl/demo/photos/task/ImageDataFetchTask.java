@@ -1,13 +1,18 @@
 package com.zyl.demo.photos.task;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.zyl.demo.photos.R;
 import com.zyl.demo.photos.model.ImageItemModel;
+import com.zyl.demo.photos.util.CommonUtil;
+import com.zyl.demo.photos.util.ImageUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +22,8 @@ import java.util.List;
  */
 public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemModel>> {
 
+  private static final String TAG = "ImageDataFetchTask";
+
   private ProgressDialog dialog;
 
   private Context context;
@@ -25,6 +32,12 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
 
   public ImageDataFetchTask(Context context) {
     this.context = context;
+  }
+
+  enum DataType {
+    NORMAL,
+    DAY,
+    YEAR
   }
 
   public ImageDataFetchTask(Context context, ImageDataFetchTaskCallback callback) {
@@ -101,10 +114,39 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
       model.setCreateTime((long) (System.currentTimeMillis() - Math.random() * images.length * 24 * 60 * 60 * 1000));
       model.setModifyTime(model.getCreateTime());
       Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), images[(int) (Math.random() * images.length)]);
+      Log.d(TAG, String.format("original bitmap,width:%d,height:%d", bitmap.getWidth(), bitmap.getHeight()));
+      BitmapDrawable drawable = new BitmapDrawable(context.getResources(), bitmap);
+      model.setBitmapDrawable(drawable);
       model.setBitmap(bitmap);
+      setViewData(model, DataType.NORMAL, 4);
+      setViewData(model, DataType.DAY, 2);
+      setViewData(model, DataType.YEAR, 8);
       data.add(model);
     }
     return data;
+  }
+
+  private void setViewData(ImageItemModel model, DataType type, int per) {
+    int perWidth = (CommonUtil.getScreenWidth((Activity) context) - per * 4) / per;
+    Bitmap bitmap = ImageUtil.zoomBitmap(model.getBitmap(), perWidth, perWidth);
+    BitmapDrawable drawable = new BitmapDrawable(context.getResources(), bitmap);
+    switch (type) {
+      case NORMAL:
+        Log.d(TAG, String.format("normalBitmap width:%d, height:%d", bitmap.getWidth() , bitmap.getHeight()));
+        model.setNormalBitmap(bitmap);
+        model.setNormalDrawable(drawable);
+        break;
+      case DAY:
+        Log.d(TAG, String.format("dayBitmap width:%d, height:%d", bitmap.getWidth() , bitmap.getHeight()));
+        model.setDayBitmap(bitmap);
+        model.setDayDrawable(drawable);
+        break;
+      case YEAR:
+        Log.d(TAG, String.format("yearBitmap width:%d, height:%d", bitmap.getWidth() , bitmap.getHeight()));
+        model.setYearBitmap(bitmap);
+        model.setYearDrawable(drawable);
+        break;
+    }
   }
 
   public interface ImageDataFetchTaskCallback {
