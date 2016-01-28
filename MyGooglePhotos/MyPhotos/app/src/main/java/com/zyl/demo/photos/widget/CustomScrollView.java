@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
 
@@ -25,9 +26,15 @@ public class CustomScrollView extends ScrollView {
 
   private boolean move = false;
 
+  private boolean selectMode = false;
+
   private int distance = 0;
 
   private ViewStatus currentStatus;
+
+  public void setSelectMode(boolean selectMode) {
+    this.selectMode = selectMode;
+  }
 
   public void setCurrentStatus(ViewStatus currentStatus) {
     this.currentStatus = currentStatus;
@@ -68,6 +75,7 @@ public class CustomScrollView extends ScrollView {
 
   @Override
   public boolean onTouchEvent(MotionEvent ev) {
+    Log.d(TAG, "ev.getAction():" + ev.getAction());
     switch (ev.getAction() & MotionEvent.ACTION_MASK) {
       case MotionEvent.ACTION_DOWN:
         primaryP.set(ev.getX(), ev.getY());
@@ -79,35 +87,40 @@ public class CustomScrollView extends ScrollView {
             (secondP.y - primaryP.y) * (secondP.y - primaryP.y));
         break;
       case MotionEvent.ACTION_MOVE:
-        move = true;
-        if (!lock) {
-          if (ev.getPointerCount() >= 2) {
-            int pointDistance = (int) Math.sqrt((ev.getX(0) - ev.getX(1)) * (ev.getX(0) - ev.getX(1)) +
-                (ev.getY(0) - ev.getY(1)) * (ev.getY(0) - ev.getY(1)));
-            if (distance == 0) {
-              distance = pointDistance;
-            }
-            if (Math.abs(pointDistance - distance) >= 30) {
-              int status = pointDistance >= distance ? 1 : -1;
-              double scale = pointDistance * 0.5 / distance;
-              if (status < 0) {
-                scale = distance * 0.2 / pointDistance;
+        // 选择模式
+        if (ev.getPointerCount() == 1 && selectMode) {
+          Log.d(TAG, "now is long pressed status, ev:" + ev);
+        } else {
+          move = true;
+          if (!lock) {
+            if (ev.getPointerCount() >= 2) {
+              int pointDistance = (int) Math.sqrt((ev.getX(0) - ev.getX(1)) * (ev.getX(0) - ev.getX(1)) +
+                  (ev.getY(0) - ev.getY(1)) * (ev.getY(0) - ev.getY(1)));
+              if (distance == 0) {
+                distance = pointDistance;
               }
-              if (status > 0) {
-                if (currentStatus.equals(ViewStatus.STATUS_YEAR) && scale >= 0.5) {
-                  lock = true;
-                  customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_MONTH);
-                } else if (currentStatus.equals(ViewStatus.STATUS_MONTH) && scale >= 0.5) {
-                  lock = true;
-                  customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_DAY);
+              if (Math.abs(pointDistance - distance) >= 30) {
+                int status = pointDistance >= distance ? 1 : -1;
+                double scale = pointDistance * 0.5 / distance;
+                if (status < 0) {
+                  scale = distance * 0.2 / pointDistance;
                 }
-              } else {
-                if (currentStatus.equals(ViewStatus.STATUS_DAY) && scale <= 0.5) {
-                  lock = true;
-                  customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_MONTH);
-                } else if (currentStatus.equals(ViewStatus.STATUS_MONTH) && scale <= 0.5) {
-                  lock = true;
-                  customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_YEAR);
+                if (status > 0) {
+                  if (currentStatus.equals(ViewStatus.STATUS_YEAR) && scale >= 0.5) {
+                    lock = true;
+                    customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_MONTH);
+                  } else if (currentStatus.equals(ViewStatus.STATUS_MONTH) && scale >= 0.5) {
+                    lock = true;
+                    customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_DAY);
+                  }
+                } else {
+                  if (currentStatus.equals(ViewStatus.STATUS_DAY) && scale <= 0.5) {
+                    lock = true;
+                    customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_MONTH);
+                  } else if (currentStatus.equals(ViewStatus.STATUS_MONTH) && scale <= 0.5) {
+                    lock = true;
+                    customScrollViewScaleChangeListener.renderViewByScale(ViewStatus.STATUS_YEAR);
+                  }
                 }
               }
             }

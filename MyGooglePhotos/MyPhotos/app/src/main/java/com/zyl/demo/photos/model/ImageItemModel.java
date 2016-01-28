@@ -20,6 +20,8 @@ public class ImageItemModel implements Serializable {
    * 标准视图:normalBitmap,normalDrawable
    * 日视图:dayBitmap,dayDrawable
    * 年视图:yearBitmap,yearDrawable
+   * 模糊标准视图(选中):mohuNormalBitmap,mohuNormalDrawable
+   * 模糊日视图(选中):mohuDayBitmap,mohuDayDrawable
    */
 
   private Bitmap bitmap;
@@ -37,6 +39,14 @@ public class ImageItemModel implements Serializable {
   private Bitmap yearBitmap;
 
   private Drawable yearDrawable;
+
+  private Bitmap mohuNormalBitmap;
+
+  private Drawable mohuNormalDrawable;
+
+  private Bitmap mohuDayBitmap;
+
+  private Drawable mohuDayDrawable;
 
 
   public long getCreateTime() {
@@ -117,5 +127,37 @@ public class ImageItemModel implements Serializable {
 
   public void setYearDrawable(Drawable yearDrawable) {
     this.yearDrawable = yearDrawable;
+  }
+
+  public Bitmap getMohuNormalBitmap() {
+    return mohuNormalBitmap;
+  }
+
+  public void setMohuNormalBitmap(Bitmap mohuNormalBitmap) {
+    this.mohuNormalBitmap = mohuNormalBitmap;
+  }
+
+  public Drawable getMohuNormalDrawable() {
+    return mohuNormalDrawable;
+  }
+
+  public void setMohuNormalDrawable(Drawable mohuNormalDrawable) {
+    this.mohuNormalDrawable = mohuNormalDrawable;
+  }
+
+  public Bitmap getMohuDayBitmap() {
+    return mohuDayBitmap;
+  }
+
+  public void setMohuDayBitmap(Bitmap mohuDayBitmap) {
+    this.mohuDayBitmap = mohuDayBitmap;
+  }
+
+  public Drawable getMohuDayDrawable() {
+    return mohuDayDrawable;
+  }
+
+  public void setMohuDayDrawable(Drawable mohuDayDrawable) {
+    this.mohuDayDrawable = mohuDayDrawable;
   }
 }

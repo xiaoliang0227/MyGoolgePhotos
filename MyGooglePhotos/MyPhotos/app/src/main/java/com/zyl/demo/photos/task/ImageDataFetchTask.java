@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.zyl.demo.photos.R;
 import com.zyl.demo.photos.model.ImageItemModel;
@@ -114,7 +113,6 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
       model.setCreateTime((long) (System.currentTimeMillis() - Math.random() * images.length * 24 * 60 * 60 * 1000));
       model.setModifyTime(model.getCreateTime());
       Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), images[(int) (Math.random() * images.length)]);
-      Log.d(TAG, String.format("original bitmap,width:%d,height:%d", bitmap.getWidth(), bitmap.getHeight()));
       BitmapDrawable drawable = new BitmapDrawable(context.getResources(), bitmap);
       model.setBitmapDrawable(drawable);
       model.setBitmap(bitmap);
@@ -132,17 +130,14 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
     BitmapDrawable drawable = new BitmapDrawable(context.getResources(), bitmap);
     switch (type) {
       case NORMAL:
-        Log.d(TAG, String.format("normalBitmap width:%d, height:%d", bitmap.getWidth() , bitmap.getHeight()));
         model.setNormalBitmap(bitmap);
         model.setNormalDrawable(drawable);
         break;
       case DAY:
-        Log.d(TAG, String.format("dayBitmap width:%d, height:%d", bitmap.getWidth() , bitmap.getHeight()));
         model.setDayBitmap(bitmap);
         model.setDayDrawable(drawable);
         break;
       case YEAR:
-        Log.d(TAG, String.format("yearBitmap width:%d, height:%d", bitmap.getWidth() , bitmap.getHeight()));
         model.setYearBitmap(bitmap);
         model.setYearDrawable(drawable);
         break;

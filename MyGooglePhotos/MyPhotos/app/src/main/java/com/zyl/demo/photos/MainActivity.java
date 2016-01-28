@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements
   }
 
   private void doActionSelect() {
+    selectedList.clear();
     selectMode = !selectMode;
     displayData(imageMap);
   }
@@ -252,6 +253,7 @@ public class MainActivity extends AppCompatActivity implements
   private void displayData(final Map<String, List<ImageItemModel>> data) {
     selectedList.clear();
     customScroll.setCurrentStatus(status);
+    customScroll.setSelectMode(selectMode);
     Handler handler = new Handler();
     handler.postDelayed(new Runnable() {
       @Override
@@ -295,7 +297,6 @@ public class MainActivity extends AppCompatActivity implements
     Map<String, Map<String, List<ImageItemModel>>> formattedMap = new HashMap<>();
     // 检查和整理排序后的集合
     for (Integer item : keySet) {
-      Log.d(TAG, "key:year_" + item);
       List<ImageItemModel> itemData = data.get("year_" + item);
       if (null == itemData || itemData.isEmpty()) continue;
 
@@ -361,7 +362,6 @@ public class MainActivity extends AppCompatActivity implements
 
     // 检查排序后的集合
     for (Integer item : keySet) {
-      Log.d(TAG, "key:day_" + item);
       List<ImageItemModel> itemData = data.get("day_" + item);
       if (null == itemData || itemData.isEmpty()) continue;
 
@@ -385,6 +385,11 @@ public class MainActivity extends AppCompatActivity implements
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
               item.getSub().setChecked(isChecked);
+              if (isChecked) {
+                selectedList.add(item.getModel());
+              } else {
+                selectedList.remove(item.getModel());
+              }
             }
           }
         }
@@ -421,7 +426,6 @@ public class MainActivity extends AppCompatActivity implements
 
     // 检查排序后的集合
     for (Integer item : keySet) {
-      Log.d(TAG, "key:month_" + item);
       final List<ImageItemModel> itemData = data.get("month_" + item);
       if (null == itemData || itemData.isEmpty()) continue;
 
@@ -446,7 +450,6 @@ public class MainActivity extends AppCompatActivity implements
         @Override
         public void onStateChangeListener(boolean isChecked) {
           List<ImagelItemSelectorModel> selectorModels = selectMap.get(partBtnSelect);
-          Log.d(TAG, "isChecked:" + isChecked + ",selectorModels.size:" + selectorModels.size());
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
               item.getSub().setChecked(partBtnSelect.isChecked());
@@ -565,20 +568,18 @@ public class MainActivity extends AppCompatActivity implements
         if (null != drawable) {
           View imageItem = LayoutInflater.from(this).inflate(R.layout.image_item, partLine, false);
           final ImageItemSelectWidget btnSelect = (ImageItemSelectWidget) imageItem.findViewById(R.id.btn_select);
+          btnSelect.setTag(System.currentTimeMillis());
           if (!status.equals(ViewStatus.STATUS_YEAR)) {
             btnSelect.setVisibility(selectMode ? View.VISIBLE : View.GONE);
           }
+
           if (null != selectMap) {
             // 选择联动,如果选中子项,则父项应该相应被选中.取消选择子项,如果子项全被取消选中,则取消选中父项
+            btnSelect.setStateChangeListener(null);
             btnSelect.setStateChangeListener(new ImageItemSelectWidget.OnStateChangeListener() {
               @Override
               public void onStateChangeListener(boolean isChecked) {
-                if (isChecked) {
-                  selectedList.add(model);
-                } else {
-                  selectedList.remove(model);
-                }
-                partBtnSelect.setChecked(!selectedList.isEmpty());
+                selectStatusChange(isChecked, model, partBtnSelect);
               }
 
               @Override
@@ -590,11 +591,13 @@ public class MainActivity extends AppCompatActivity implements
             ImagelItemSelectorModel selectorModel = new ImagelItemSelectorModel();
             selectorModel.setCategery(partBtnSelect);
             selectorModel.setSub(btnSelect);
+            selectorModel.setModel(model);
             imageSelectList.add(selectorModel);
           }
 
-          ImageView img = (ImageView) imageItem.findViewById(R.id.img);
+          final ImageView img = (ImageView) imageItem.findViewById(R.id.img);
           setImageData(img, model);
+
           LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
               ViewGroup.LayoutParams.WRAP_CONTENT);
           params.width = perWidth;
@@ -614,7 +617,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
               if (selectMode && !status.equals(ViewStatus.STATUS_YEAR)) {
-                exchangeButtonSelectState(btnSelect);
+                exchangeButtonSelectState(btnSelect, model, partBtnSelect);
               } else {
                 jumpToImageDetailPage(model);
               }
@@ -628,6 +631,15 @@ public class MainActivity extends AppCompatActivity implements
     if (null != partBtnSelect) {
       selectMap.put(partBtnSelect, imageSelectList);
     }
+  }
+
+  private void selectStatusChange(boolean isChecked, ImageItemModel model, CategerySelectWidget partBtnSelect) {
+    if (isChecked) {
+      selectedList.add(model);
+    } else {
+      selectedList.remove(model);
+    }
+    partBtnSelect.setChecked(!selectedList.isEmpty());
   }
 
   private void setImageData(ImageView img, ImageItemModel model) {
@@ -644,8 +656,9 @@ public class MainActivity extends AppCompatActivity implements
     }
   }
 
-  private void exchangeButtonSelectState(ImageItemSelectWidget btnSelect) {
+  private void exchangeButtonSelectState(ImageItemSelectWidget btnSelect, ImageItemModel model, CategerySelectWidget partBtnSelect) {
     btnSelect.setChecked(!btnSelect.isChecked());
+    selectStatusChange(btnSelect.isChecked(), model, partBtnSelect);
   }
 
   private void jumpToImageDetailPage(ImageItemModel model) {
