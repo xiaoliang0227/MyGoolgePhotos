@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
 
@@ -73,7 +72,6 @@ public class CustomScrollView extends ScrollView {
     switch (ev.getAction() & MotionEvent.ACTION_MASK) {
       case MotionEvent.ACTION_DOWN:
         primaryP.set(ev.getX(), ev.getY());
-        Log.d(TAG, "presure:" + ev.getPressure());
         break;
       case MotionEvent.ACTION_POINTER_DOWN:
         primaryP.set(ev.getX(0), ev.getY(0));

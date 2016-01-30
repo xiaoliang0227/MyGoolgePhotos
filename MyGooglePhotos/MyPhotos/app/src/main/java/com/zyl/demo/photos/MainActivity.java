@@ -383,18 +383,23 @@ public class MainActivity extends AppCompatActivity implements
       itemLabel.setText(new SimpleDateFormat("yyyy年MM月dd日").format(new Date(itemData.get(0).getCreateTime())));
       setContainerContent(itemContainer, null, itemData, per, partBtnSelect, key);
 
-      Log.d(TAG, "selectMap:" + selectMap.size());
-
       // 添加category选项框监听时间
       partBtnSelect.setStateChangeListener(new CategerySelectWidget.OnStateChangeListener() {
         @Override
         public void onStateChangeListener(boolean isChecked) {
           List<ImagelItemSelectorModel> selectorModels = selectMap.get(key);
-          Log.d(TAG, "key:" + key + ",selectorModels:" + selectorModels.size());
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
               item.getSub().setChecked(isChecked);
               item.getImageView().setAlpha(isChecked ? 0.5f : 1.0f);
+
+              if (isChecked) {
+                partBtnSelect.getSelectedList().add(item.getModel());
+                selectedList.add(item.getModel());
+              } else {
+                partBtnSelect.getSelectedList().remove(item.getModel());
+                selectedList.remove(item.getModel());
+              }
             }
           }
         }
@@ -459,8 +464,15 @@ public class MainActivity extends AppCompatActivity implements
           List<ImagelItemSelectorModel> selectorModels = selectMap.get(key);
           if (null != selectorModels && !selectorModels.isEmpty()) {
             for (ImagelItemSelectorModel item : selectorModels) {
-              item.getSub().setChecked(partBtnSelect.isChecked());
-              item.getImageView().setAlpha(partBtnSelect.isChecked() ? 0.5f : 1.0f);
+              item.getSub().setChecked(isChecked);
+              item.getImageView().setAlpha(isChecked ? 0.5f : 1.0f);
+              if (isChecked) {
+                partBtnSelect.getSelectedList().add(item.getModel());
+                selectedList.add(item.getModel());
+              } else {
+                partBtnSelect.getSelectedList().remove(item.getModel());
+                selectedList.remove(item.getModel());
+              }
             }
           }
         }
@@ -552,7 +564,6 @@ public class MainActivity extends AppCompatActivity implements
                                    int per, final CategerySelectWidget partBtnSelect, final String key) {
     // 计算要显示的行数
     int lines = CommonUtil.getColumns(itemData.size(), per);
-    Log.d(TAG, "lines:" + lines);
     List<ImagelItemSelectorModel> imageSelectList = new ArrayList<>();
     for (int i = 0; i < lines; i++) {
       int start = i * per;
@@ -645,12 +656,14 @@ public class MainActivity extends AppCompatActivity implements
   private void selectStatusChange(ImageView img, boolean isChecked, ImageItemModel model, CategerySelectWidget partBtnSelect) {
     if (isChecked) {
       img.setAlpha(0.5f);
+      partBtnSelect.getSelectedList().add(model);
       selectedList.add(model);
     } else {
       img.setAlpha(1.0f);
+      partBtnSelect.getSelectedList().remove(model);
       selectedList.remove(model);
     }
-    partBtnSelect.setChecked(!selectedList.isEmpty());
+    partBtnSelect.setChecked(!partBtnSelect.getSelectedList().isEmpty());
   }
 
   private void setImageData(ImageView img, ImageItemModel model) {
@@ -707,48 +720,34 @@ public class MainActivity extends AppCompatActivity implements
 
   @Override
   public void longPressMoveSelect(PointF primaryP, MotionEvent event) {
-    if (null == selectMap || selectMap.isEmpty() || !status.equals(ViewStatus.STATUS_MONTH)) return;
+    if (null == selectMap || selectMap.isEmpty() || status.equals(ViewStatus.STATUS_YEAR)) return;
     // 从左向右滑动时触发
     if (event.getX() > primaryP.x) {
-      int height = (int) Math.abs(event.getY() - primaryP.y);
-      int perWidth = 0;
-      int columns = 0;
-      int rows = 0;
-      int per = 0;
-      if (status.equals(ViewStatus.STATUS_MONTH)) {
-        per = 4;
-      } else if (status.equals(ViewStatus.STATUS_DAY)) {
-        per = 2;
-      }
-      perWidth = (CommonUtil.getScreenWidth(this) - per * 4) / per;
-      int width = (int) Math.abs(event.getX() - primaryP.x);
-      Log.d(TAG, "width:" + width + ",height:" + height);
-      if (width <= 30 && height >= 100) {
-        width = perWidth * per;
-      }
-      rows = (int) Math.ceil(height * 1.0 / perWidth);
-      columns = (int) Math.ceil(width * 1.0 / perWidth);
-
       Set<String> keySet = selectMap.keySet();
       for (String key : keySet) {
         List<ImagelItemSelectorModel> selectorModels = selectMap.get(key);
-        List<ImagelItemSelectorModel> tmpList = new ArrayList<>();
-        for (int i = 0; i < rows; i++) {
-          int start = (rows - 1) * per;
-          if (start > selectorModels.size()) {
+        for (ImagelItemSelectorModel item : selectorModels) {
+          ImageView imageView = item.getImageView();
+          int m_h = CommonUtil.getViewHeight(imageView);
+          int m_w = CommonUtil.getViewWidth(imageView);
+          int[] location = new int[2];
+          imageView.getLocationInWindow(location);
+          int m_x = location[0];
+          int m_y = location[1];
+          if (m_y < event.getY()) {
+            boolean flag = true;
+            flag &= (m_x - primaryP.x >= 0 || (primaryP.x - m_x > 0 && primaryP.x - m_x < m_w)) &&
+                event.getX() - m_x >= 0 &&
+                m_y - primaryP.y >= 0 &&
+                (event.getY() - m_y >= 0 && event.getY() -m_y <= m_h);
+            if (flag) {
+              item.getCategery().setChecked(true);
+              item.getSub().setChecked(true);
+              item.getImageView().setAlpha(0.5f);
+            }
+          } else {
             break;
           }
-          int end = start + columns;
-          if (end > selectorModels.size()) {
-            end = selectorModels.size();
-          }
-          tmpList.addAll(selectorModels.subList(start, end));
-        }
-        // 设置选中状态
-        for (ImagelItemSelectorModel item : tmpList) {
-          item.getCategery().setChecked(true);
-          item.getSub().setChecked(true);
-          item.getImageView().setAlpha(0.5f);
         }
       }
     }
