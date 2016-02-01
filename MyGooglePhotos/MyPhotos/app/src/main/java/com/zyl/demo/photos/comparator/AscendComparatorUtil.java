@@ -7,7 +7,7 @@ import java.util.Comparator;
 /**
  * Created by JasonZhao on 16/1/19.
  */
-public class ComparatorUtil implements Comparator<Object> {
+public class AscendComparatorUtil implements Comparator<Object> {
   /**
    * Compares the two specified objects to determine their relative ordering. The ordering
    * implied by the return value of this method for all possible pairs of

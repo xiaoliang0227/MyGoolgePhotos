@@ -22,7 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.zyl.demo.photos.comparator.ComparatorUtil;
+import com.zyl.demo.photos.comparator.DescendComparatorUtil;
 import com.zyl.demo.photos.enumeration.ViewStatus;
 import com.zyl.demo.photos.model.ImageItemModel;
 import com.zyl.demo.photos.model.ImagelItemSelectorModel;
@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements
       String monthKey = String.format("month_%d", month);
 
       // 当前日,某月中的某日
-      int day = calendar.get(Calendar.DAY_OF_MONTH);
+      int day = calendar.get(Calendar.DAY_OF_YEAR);
       String dayKey = String.format("day_%d", day);
 
       // 整合相同年的数据
@@ -289,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements
     clearView();
 
     // 生成可排序的key集合
-    Set<Integer> keySet = new TreeSet();
+    Set<Integer> keySet = new TreeSet(new DescendComparatorUtil());
     for (String key : data.keySet()) {
       if (key.indexOf("year_") >= 0) {
         keySet.add(Integer.valueOf(key.substring("year_".length())));
@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements
         ViewGroup monthItem = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.year_part_line_item, null);
         TextView itemLabel = (TextView) monthItem.findViewById(R.id.item_label);
         LinearLayout itemContainer = (LinearLayout) monthItem.findViewById(R.id.item_container);
-        itemLabel.setText(new SimpleDateFormat("MM月").format(new Date(itemData.get(0).getCreateTime())));
+        itemLabel.setText(new SimpleDateFormat("MM月").format(new Date(value.get(0).getCreateTime())));
 
         setContainerContent(itemContainer, itemLabel, value, per, null, null);
 
@@ -353,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements
       customView.removeAllViews();
     // 找出所有日的分类
     // 生成可排序的key集合
-    Set<Integer> keySet = new TreeSet();
+    Set<Integer> keySet = new TreeSet(new DescendComparatorUtil());
     for (String key : data.keySet()) {
       if (key.indexOf("day_") >= 0) {
         keySet.add(Integer.valueOf(key.substring("day_".length())));
@@ -423,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements
       customView.removeAllViews();
     // 找出所有月份的分类
     // 生成可排序的key集合
-    Set<Integer> keySet = new TreeSet();
+    Set<Integer> keySet = new TreeSet(new DescendComparatorUtil());
     for (String key : data.keySet()) {
       if (key.indexOf("month_") >= 0) {
         keySet.add(Integer.valueOf(key.substring("month_".length())));
@@ -639,7 +639,9 @@ public class MainActivity extends AppCompatActivity implements
               if (selectMode && !status.equals(ViewStatus.STATUS_YEAR)) {
                 exchangeButtonSelectState(img, btnSelect, model, partBtnSelect);
               } else {
-                jumpToImageDetailPage(model);
+                if (!customScroll.isLock()) {
+                  jumpToImageDetailPage(model);
+                }
               }
             }
           });
@@ -707,7 +709,7 @@ public class MainActivity extends AppCompatActivity implements
     } else {
       map.get(key).add(model);
     }
-    Collections.sort(map.get(key), new ComparatorUtil());
+    Collections.sort(map.get(key), new DescendComparatorUtil());
   }
 
   @Override
@@ -734,12 +736,12 @@ public class MainActivity extends AppCompatActivity implements
           imageView.getLocationInWindow(location);
           int m_x = location[0];
           int m_y = location[1];
-          if (m_y < event.getY()) {
+          if (m_y < event.getRawY() && event.getRawY() > primaryP.y) {
             boolean flag = true;
             flag &= (m_x - primaryP.x >= 0 || (primaryP.x - m_x > 0 && primaryP.x - m_x < m_w)) &&
-                event.getX() - m_x >= 0 &&
+                event.getRawX() - m_x >= 0 &&
                 m_y - primaryP.y >= 0 &&
-                (event.getY() - m_y >= 0 && event.getY() -m_y <= m_h);
+                (event.getRawY() - m_y >= 0 && event.getRawY() - m_y <= m_h);
             if (flag) {
               item.getCategery().setChecked(true);
               item.getSub().setChecked(true);

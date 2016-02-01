@@ -9,11 +9,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 
 import com.zyl.demo.photos.R;
+import com.zyl.demo.photos.comparator.DescendComparatorUtil;
 import com.zyl.demo.photos.model.ImageItemModel;
 import com.zyl.demo.photos.util.CommonUtil;
 import com.zyl.demo.photos.util.ImageUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -121,6 +123,7 @@ public class ImageDataFetchTask extends AsyncTask<Void, Void, List<ImageItemMode
       setViewData(model, DataType.YEAR, 8);
       data.add(model);
     }
+    Collections.sort(data, new DescendComparatorUtil());
     return data;
   }
 

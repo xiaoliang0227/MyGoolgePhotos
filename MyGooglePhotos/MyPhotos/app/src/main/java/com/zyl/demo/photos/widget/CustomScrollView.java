@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ScrollView;
 
@@ -29,7 +30,13 @@ public class CustomScrollView extends ScrollView {
 
   private int distance = 0;
 
+  private double pressure = 0.0;
+
   private ViewStatus currentStatus;
+
+  public boolean isLock() {
+    return lock;
+  }
 
   public void setSelectMode(boolean selectMode) {
     this.selectMode = selectMode;
@@ -72,6 +79,8 @@ public class CustomScrollView extends ScrollView {
     switch (ev.getAction() & MotionEvent.ACTION_MASK) {
       case MotionEvent.ACTION_DOWN:
         primaryP.set(ev.getX(), ev.getY());
+        pressure = ev.getPressure();
+        Log.d(TAG, "current pressure:" + pressure);
         break;
       case MotionEvent.ACTION_POINTER_DOWN:
         primaryP.set(ev.getX(0), ev.getY(0));
@@ -82,10 +91,13 @@ public class CustomScrollView extends ScrollView {
       case MotionEvent.ACTION_MOVE:
         // 选择模式
         if (ev.getPointerCount() == 1 && selectMode) {
+
           if (primaryP.x == 0) {
             primaryP.set(ev.getX(), ev.getY());
           }
-          customScrollViewScaleChangeListener.longPressMoveSelect(primaryP, ev);
+          if (pressure >= 0.15) {
+            customScrollViewScaleChangeListener.longPressMoveSelect(primaryP, ev);
+          }
         } else {
           move = true;
           if (!lock) {
@@ -126,7 +138,12 @@ public class CustomScrollView extends ScrollView {
       case MotionEvent.ACTION_UP:
       case MotionEvent.ACTION_POINTER_UP:
         distance = 0;
-        lock = false;
+        getHandler().postDelayed(new Runnable() {
+          @Override
+          public void run() {
+            lock = false;
+          }
+        }, 100);
         move = false;
         break;
     }
